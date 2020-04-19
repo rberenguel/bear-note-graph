@@ -1,0 +1,45 @@
+graph:
+  anonymise: False                         # Make the output anonymous
+  max_label_length: 50                     # Max length to show of the notes/tags
+  include_only_tags: ""                    # Generate graph only for these tags (comma separated)
+  exclude_titles: "readings,> "            # Skip all notes with titles containing this (comma separated)
+  exclude_tags: "journal,@"                # Skip all tags containing this (comma separated)
+  show_tag_edges: True                     # Whether to show tags and the linking between tags and notes
+  show_note_edges: True                    # Whether to show note edges
+  prune: False                             # Remove all notes with no tags (useful for include_only)
+  overlap: False                           # Overlap mode for nodes in the graph
+  sep: "+90,90"                            # Margins around nodes
+  splines: True                            # Whether to use splines for the arrows
+  bgcolor: "solarized-dark.base02"         # Background colour for the graph
+  free_form: "K=0.9"                       # Any additional parameters to Graphviz
+  tmp: "/tmp"                              # Temporary folder for the copy of the Bear SQLite database
+  destination: "/tmp/bear_graph"           # Default destination for the Graphviz result
+  output_format: "pdf"                     # Format of the output graphviz (only useful if run_graphviz is set)
+  run_graphviz: "sfdp"                     # Algorithm to run automatically sfdp or neato recommended
+
+tag:
+  shape: "folder"                          # Shape
+  style: "rounded,filled"                  # Style
+  fill_color: "solarized-dark.yellow"      # Fill
+  strike_color: "solarized-dark.orange"    # Stroke
+  free_form: ""
+
+note:
+  shape: "note"
+  style: "filled"
+  fill_color: "solarized-dark.cyan"
+  strike_color: "solarized-dark.blue"
+  free_form: ""
+
+tag_link:
+  strike_color: "solarized-dark.magenta"
+  arrowhead: "none"                        # Arrowhead
+  free_form: "penwidth=\"2.5\""            # You can add any additional parameters
+
+note_link:
+  strike_color: "solarized-dark.green"
+  arrowhead: "normal"
+  free_form: "penwidth=\"2.5\""
+
+custom_palette_here:                       # You can inline palettes here
+  screaming_color: "#AAAAAA"               # You can inline palettes here

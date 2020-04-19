@@ -1,0 +1,4 @@
+[MESSAGES CONTROL]
+
+disable=missing-docstring,line-too-long,too-few-public-methods,too-many-instance-attributes,too-many-locals
+good-names=logger
