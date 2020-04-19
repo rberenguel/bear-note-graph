@@ -1,5 +1,7 @@
 # Bear-note-graph 🐻🐍
 
+[![PyPI version](https://badge.fury.io/py/bear-note-graph.svg)](https://badge.fury.io/py/bear-note-graph)
+
 _Note_: Still WIP, not as thoroughly tested as I would have liked
 
 This is a simple CLI to generate a [Graphviz](https://www.graphviz.org/doc/info/attrs.html)-powered graph of your notes in Bear.
@@ -8,7 +10,7 @@ This is a simple CLI to generate a [Graphviz](https://www.graphviz.org/doc/info/
 
 This is an example in PNG format, with the flag `--anonymise`, which you can use in case you want to show your own graph but avoid showing the titles of your notes `¯\﹍(ツ)﹍/¯`
 
-<a href="resources/bear_graph.png" target="_blank"><img src="resources/bear_graph.png" alt="Example graph" width="800"></a>
+<a href="https://github.com/rberenguel/bear-note-graph/raw/master/resources/bear_graph.png" target="_blank"><img src="https://github.com/rberenguel/bear-note-graph/raw/master/resources/bear_graph.png" alt="Example graph" width="800"></a>
 
 If you use the default output (PDF) you will get clickable links to notes and tags (BUT ONLY ON iOS, Preview for Mac does not open app links). I recommend you copy your graph to iCloud if you want clicking. You can see an example of the PDF <a href="resources/bear_graph.pdf" target="_blank">here</a> (although it is anonymised as well).
 
