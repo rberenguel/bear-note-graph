@@ -10,7 +10,7 @@ This is a simple CLI to generate a [Graphviz](https://www.graphviz.org/doc/info/
 
 This is an example in PNG format, with the flag `--anonymise`, which you can use in case you want to show your own graph but avoid showing the titles of your notes `¯\﹍(ツ)﹍/¯`
 
-<a href="https://github.com/rberenguel/bear-note-graph/raw/master/resources/bear_graph.png" target="_blank"><img src="https://github.com/rberenguel/bear-note-graph/raw/master/resources/bear_graph.png" alt="Example graph" width="800"></a>
+<a href="https://github.com/rberenguel/bear-note-graph/raw/master/resources/bear_graph.png" target="_blank"><img src="https://raw.githubusercontent.com/rberenguel/bear-note-graph/master/resources/bear_graph.png" alt="Example graph" width="800"></a>
 
 If you use the default output (PDF) you will get clickable links to notes and tags (BUT ONLY ON iOS, Preview for Mac does not open app links). I recommend you copy your graph to iCloud if you want clicking. You can see an example of the PDF <a href="resources/bear_graph.pdf" target="_blank">here</a> (although it is anonymised as well).
 
@@ -20,6 +20,16 @@ You need an environment with at least Python 3.7, and
 
 ```bash
 pip install bear-note-graph
+```
+
+## Installing graphviz
+
+To generate the graph, the `sfdp` command from Graphviz needs to be available, and for some settings (like, if you want to change overlap modes) you may need to reinstall to add `gts`. For this, you should have [homebrew](https://brew.sh) available.
+
+```bash
+brew uninstall graphviz --ignore-dependencies
+brew install gts
+brew install graphviz
 ```
 
 ## Usage
