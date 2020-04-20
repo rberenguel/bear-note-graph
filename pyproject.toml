@@ -1,10 +1,11 @@
 [tool.poetry]
 name = "bear-note-graph"
-version = "0.1.1"
+version = "0.1.2"
 description = "Generate a graphviz visualisation of your Bear notes. It also has a partial Markdown parser, because why not"
 authors = ["Ruben Berenguel <ruben+poetry@mostlymaths.net>"]
 license = "MIT"
 readme = "README.md"
+include = ["resources/*.yaml"]
 
 repository = "https://github.com/rberenguel/bear-note-graph"
 
