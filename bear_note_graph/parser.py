@@ -87,7 +87,7 @@ class FallbackTextBlock(Block):
     """If we could not capture "specials" with the proper parsers, capture the possible problems here"""
 
     pattern: Pattern = field(
-        repr=False, default=re.compile(r"(`|#|[|])(.*)", re.MULTILINE | re.DOTALL)
+        repr=False, default=re.compile(r"(`|#|[|]|\[)(.*)", re.MULTILINE | re.DOTALL)
     )
 
 
@@ -122,11 +122,15 @@ class TagBlock(Block):
     )
 
 
+class ParseError(Exception):
+    pass
+
+
 class Parser:
     """General parser stuff. It can hold an optional list of parsers, to then have
 multiple parsers (sequential, one-off) with the same interface, parse"""
 
-    def __init__(self, parsers: List["Parser"] = None):
+    def __init__(self, parsers: Optional[List["Parser"]] = None):
         self.parsers = parsers
 
     @abstractmethod
@@ -299,7 +303,7 @@ class OrderedOneOfParser(Parser):
     def parse(self, text):
         parsers = self.parsers
         if parsers is None:
-            raise Exception("We can't have an OrderedOneOfParser with no parsers")
+            raise ParseError("We can't have an OrderedOneOfParser with no parsers")
         for parser in parsers:
             block, rest = parser.parse(text)
             if block is None:
@@ -314,9 +318,9 @@ class SequenceParser(Parser):
     def parse(self, text):
         parsers = self.parsers
         if parsers is None:
-            raise Exception("We can't sequence if there are no parsers")
+            raise ParseError("We can't sequence if there are no parsers")
         if len(parsers) > 1:
-            raise Exception(
+            raise ParseError(
                 "We only sequence one parser, create an OrderedOneOfParser first"
             )
         parser = parsers[0]
@@ -329,7 +333,7 @@ class SequenceParser(Parser):
             block, rest = parser.parse(rest)
             if rest == old_rest:
                 err = f"No parser can process <<{rest}>>"
-                raise Exception(err)
+                raise ParseError(err)
             if block is not None:
                 ret += [block]
 

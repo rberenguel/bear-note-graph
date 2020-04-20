@@ -5,15 +5,12 @@ import sys
 
 from colorlog import ColoredFormatter  # type: ignore
 
-from .generate import generate_graph
-from .graph import GraphFormat
-from .settings import (
-    DEFAULT_CONFIGURATION,
-    PALETTES,
-    dump_default_config,
-    dump_default_palette,
-    merge_user_config_with_default,
-)
+from bear_note_graph.generate import generate_graph
+from bear_note_graph.graph import GraphFormat
+from bear_note_graph.settings import (DEFAULT_CONFIGURATION, PALETTES,
+                                      dump_default_config,
+                                      dump_default_palette,
+                                      merge_user_config_with_default)
 
 logger = logging.getLogger("bear_note_graph")
 
@@ -42,7 +39,9 @@ def main(**args):
     configure_logger()
     logger.setLevel(logging.INFO)
 
-    parser = argparse.ArgumentParser(description="bear-note-graph generates a Graphviz graph of your Bear notes")
+    parser = argparse.ArgumentParser(
+        description="bear-note-graph generates a Graphviz graph of your Bear notes"
+    )
     parser.add_argument(
         "--config",
         metavar="config",

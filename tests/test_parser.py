@@ -1,7 +1,8 @@
 import pytest
 from bear_note_graph.parser import (
     InlinedCodeBlock,
-    BareCodeBlock,BareCodeBlockParser,
+    BareCodeBlock,
+    BareCodeBlockParser,
     LinkBlock,
     TextBlockParser,
     CodeBlockParser,
@@ -72,10 +73,11 @@ def test_parse_inlined_code_block():
     text = f"{inlined_code_block}{text_block}"
     block, rest = InlinedCodeBlockParser().parse(text)
     assert block == InlinedCodeBlock(f"{code}")
-    assert rest == " "+text_block
+    assert rest == " " + text_block
+
 
 def test_problematic_code_block():
-    text="""``` 
+    text = """``` 
 A:B:C~E:F~G:H~~I::J~K~L
 ``` 
 
@@ -84,6 +86,7 @@ There are"""
     block, rest = BareCodeBlockParser().parse(text)
     assert block == BareCodeBlock("A:B:C~E:F~G:H~~I::J~K~L\n")
     assert rest == " \n\nThere are"
+
 
 def test_parse_code_block():
     text_block = BLOCKS["text_block"]
@@ -143,7 +146,7 @@ def test_parse_text_and_tag_code_block():
     assert blocks[1] == TagBlock(tag_block)
     assert blocks[2] == TextBlock("\n")
     assert blocks[3] == CodeBlock(f"{code}", "python")
-    assert blocks[4] == TextBlock(" "+second_text_block + "\n")
+    assert blocks[4] == TextBlock(" " + second_text_block + "\n")
     assert blocks[5] == CodeBlock(f"\n{tag_block}\n", "foo")
     assert rest is None
 
@@ -173,6 +176,6 @@ def test_parse_text_and_tag_code_block():
     assert blocks[2] == TextBlock("\n")
     assert blocks[3] == CodeBlock(f"{code}", "python")
     assert blocks[4] == InlinedCodeBlock(f"{tag_block}")
-    assert blocks[5] == TextBlock(" "+second_text_block + "\n")
+    assert blocks[5] == TextBlock(" " + second_text_block + "\n")
     assert blocks[6] == CodeBlock(f"\n{tag_block}\n", "foo")
     assert rest is None

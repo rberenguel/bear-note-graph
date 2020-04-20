@@ -4,8 +4,9 @@ import shutil
 import sqlite3
 import subprocess
 from pathlib import Path
+from typing import Any, Dict, List
 
-from .parser import NoteLinkBlock, TagBlock, MARKDOWN_PARSER
+from .parser import MARKDOWN_PARSER, NoteLinkBlock, ParseError, TagBlock
 
 logger = logging.getLogger("bear_note_graph.generate")
 
@@ -27,13 +28,29 @@ def get_db_data(graph_format):
     logger.info("Fetching notes from (the copy of the) database")
     with sqlite3.connect(temp_db) as conn:
         conn.row_factory = sqlite3.Row
-        query = "SELECT * FROM `ZSFNOTE` WHERE `ZTRASHED` LIKE '0'"
+        query = "SELECT ZTITLE AS title, ZTEXT AS md_text, ZUNIQUEIDENTIFIER AS uuid FROM `ZSFNOTE` WHERE `ZTRASHED` LIKE '0'"
         result_set = conn.execute(query).fetchall()
-    logger.info("Fetched %s notes from the (copy of) the Bear database", len(result_set))
+    logger.info(
+        "Fetched %s notes from the (copy of) the Bear database", len(result_set)
+    )
     return result_set
 
 
+def bear_note_link(_id):
+    return f"bear://x-callback-url/open-note?id={_id}"
+
+
 def generate_graph(graph_format):
+    rows = get_db_data(graph_format)
+    all_tags, all_notes, all_tag_edges, all_note_edges = generate_graph_from_rows(
+        graph_format, rows
+    )
+    process(graph_format, all_tags, all_notes, all_tag_edges, all_note_edges)
+    logger.info("Graphviz file generated at %s.gv", graph_format.destination)
+    run_graphviz(graph_format)
+
+
+def generate_graph_from_rows(graph_format, rows: List[Dict[Any, Any]]):
     """The main loop to generate the graph. I got lazy after working on the
 Markdown parser, so even if this could be significantly cleaner (and tested...)
 I didn't want to invest any more time on it"""
@@ -42,8 +59,6 @@ I didn't want to invest any more time on it"""
     all_notes = []
     all_tag_edges = []
     all_note_edges = []
-
-    rows = get_db_data(graph_format)
 
     def filter_tags(tag):
         for exclude in graph_format.exclude_tags:
@@ -55,10 +70,21 @@ I didn't want to invest any more time on it"""
         return False
 
     for row in rows:
-        title = row["ZTITLE"]
-        md_text = row["ZTEXT"]
-        uuid = row["ZUNIQUEIDENTIFIER"]
-        blocks, _ = MARKDOWN_PARSER.parse(md_text)
+        title = row["title"]
+        md_text = row["md_text"]
+        uuid = row["uuid"]
+        if len(md_text) < 3:
+            logger.warning("Skipping empty note: %s", bear_note_link(uuid))
+        try:
+            blocks, _ = MARKDOWN_PARSER.parse(md_text)
+        except ParseError as exc:
+            logger.warning(
+                "There is a problem parsing note <<%s>> %s, the error is\n\t%s",
+                title,
+                bear_note_link(uuid),
+                exc,
+            )
+            continue
         if any(
             [
                 exclude.lower() in title.lower()
@@ -102,21 +128,35 @@ I didn't want to invest any more time on it"""
             all_note_edges += [{"src": uuid, "dst": note}]
 
     for note_edge in all_note_edges:
-        note = filter(lambda x: x["title"] == note_edge["dst"], all_notes)
-        note_edge["dst"] = list(note)[0]["id"]
+        note_id = find_note_id(note_edge, all_notes)
+        note_edge["dst"] = note_id
 
-    all_tags = set(all_tags)
+    all_note_edges = list(filter(lambda ne: ne["dst"] != "", all_note_edges))
+    unique_tags = set(all_tags)
     logger.info(
         "All notes processed, there are %s tags, %s (valid) notes, %s tag edges among them and %s note edges among them",
-        len(all_tags),
+        len(unique_tags),
         len(all_notes),
         len(all_tag_edges),
         len(all_note_edges),
     )
 
-    process(graph_format, all_tags, all_notes, all_tag_edges, all_note_edges)
-    logger.info("Graphviz file generated at %s.gv", graph_format.destination)
-    run_graphviz(graph_format)
+    return unique_tags, all_notes, all_tag_edges, all_note_edges
+
+
+def find_note_id(note_edge: Dict[str, str], all_notes: List[Dict[str, str]]) -> str:
+    dest_title = note_edge["dst"]
+    source_id = note_edge["src"]
+    note = filter(lambda x: x["title"] == dest_title, all_notes)
+    try:
+        return list(note)[0]["id"]
+    except IndexError:
+        logger.warning(
+            "Could not find note titled <<%s>> linked from note %s",
+            dest_title,
+            bear_note_link(source_id),
+        )
+        return ""
 
 
 def run_graphviz(graph_format):
@@ -139,7 +179,11 @@ def process(graph_format, all_tags, all_notes, all_tag_edges, all_note_edges):
         dest.write(f"\t\t# Tags section\n")
         if graph_format.show_tag_edges:
             for tag in all_tags:
-                url = "" if graph_format.anonymise else f"bear://x-callback-url/open-tag?name={tag}" 
+                url = (
+                    ""
+                    if graph_format.anonymise
+                    else f"bear://x-callback-url/open-tag?name={tag}"
+                )
                 label = graph_format.label(tag)
                 dest.write(f'\t\t"{label}" [{graph_format.tag_format}, URL="{url}"];\n')
         dest.write(f"\t\t# Notes section\n")
