@@ -4,7 +4,7 @@
 
 _Note_: Still WIP, not as thoroughly tested as I would have liked
 
-This is a simple CLI to generate a [Graphviz](https://www.graphviz.org/doc/info/attrs.html)-powered graph of your notes in Bear.
+This is a simple CLI to generate a [Graphviz](https://www.graphviz.org/doc/info/attrs.html)-powered graph of your notes in [Bear](https://bear.app/).
 
 ## Example
 
