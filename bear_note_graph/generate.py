@@ -28,7 +28,7 @@ def get_db_data(graph_format):
     logger.info("Fetching notes from (the copy of the) database")
     with sqlite3.connect(temp_db) as conn:
         conn.row_factory = sqlite3.Row
-        query = "SELECT ZTITLE AS title, ZTEXT AS md_text, ZUNIQUEIDENTIFIER AS uuid FROM `ZSFNOTE` WHERE `ZTRASHED` LIKE '0'"
+        query = "SELECT ZTITLE AS title, ZTEXT AS md_text, ZUNIQUEIDENTIFIER AS uuid, ZENCRYPTED AS encrypted FROM `ZSFNOTE` WHERE `ZTRASHED` LIKE '0'"
         result_set = conn.execute(query).fetchall()
     logger.info(
         "Fetched %s notes from the (copy of) the Bear database", len(result_set)
@@ -36,8 +36,12 @@ def get_db_data(graph_format):
     return result_set
 
 
-def bear_note_link(_id):
-    return f"bear://x-callback-url/open-note?id={_id}"
+def bear_note_link(uuid):
+    return f"bear://x-callback-url/open-note?id={uuid}"
+
+
+def lock_title(title):
+    return f"🔒 {title}"
 
 
 def generate_graph(graph_format):
@@ -70,11 +74,53 @@ I didn't want to invest any more time on it"""
         return False
 
     for row in rows:
-        title = row["title"]
-        md_text = row["md_text"]
-        uuid = row["uuid"]
+        try:
+            uuid = row["uuid"]
+        except KeyError:
+            logger.warning(
+                "Found a note without id. I would contact the Bear development team on this one"
+            )
+            continue
+        encrypted = False
+        try:
+            encrypted = (
+                not row["encrypted"] == 0
+            )  # I don't have locked notes, so this is as good as I can see it
+        except KeyError:
+            logger.warning(
+                "This note didn't have encryption information, which is weird %s",
+                bear_note_link(uuid),
+            )
+        try:
+            title = row["title"]
+        except KeyError:
+            logger.warning(
+                "Skipping note with empty title. This should not happen, but you can find the note here: %s",
+                bear_note_link(uuid),
+            )
+            continue
+
+        if encrypted:
+            title = lock_title(title)
+        if any(
+            [
+                exclude.lower() in title.lower()
+                for exclude in graph_format.exclude_titles
+            ]
+        ):
+            continue
+        all_notes += [{"title": title, "uuid": uuid}]
+        try:
+            md_text = row["md_text"]
+        except KeyError:
+            logger.warning(
+                "Skipping note with absolutely no text. This is likely a locked note"
+            )
+            continue
+
         if len(md_text) < 3:
             logger.warning("Skipping empty note: %s", bear_note_link(uuid))
+            continue
         try:
             blocks, _ = MARKDOWN_PARSER.parse(md_text)
         except ParseError as exc:
@@ -84,13 +130,6 @@ I didn't want to invest any more time on it"""
                 bear_note_link(uuid),
                 exc,
             )
-            continue
-        if any(
-            [
-                exclude.lower() in title.lower()
-                for exclude in graph_format.exclude_titles
-            ]
-        ):
             continue
 
         def cleanup_tag(tag):
@@ -120,7 +159,7 @@ I didn't want to invest any more time on it"""
         if graph_format.prune:
             if len(filtered_tags) == 0:
                 continue
-        all_notes += [{"title": title, "id": uuid}]
+
         for tag in filtered_tags:
             all_tag_edges += [{"src": tag, "dst": uuid}]
         all_tags += filtered_tags
@@ -147,9 +186,12 @@ I didn't want to invest any more time on it"""
 def find_note_id(note_edge: Dict[str, str], all_notes: List[Dict[str, str]]) -> str:
     dest_title = note_edge["dst"]
     source_id = note_edge["src"]
-    note = filter(lambda x: x["title"] == dest_title, all_notes)
+    note = filter(
+        lambda x: x["title"] == dest_title or x["title"] == lock_title(dest_title),
+        all_notes,
+    )
     try:
-        return list(note)[0]["id"]
+        return list(note)[0]["uuid"]
     except IndexError:
         logger.warning(
             "Could not find note titled <<%s>> linked from note %s",
@@ -189,11 +231,11 @@ def process(graph_format, all_tags, all_notes, all_tag_edges, all_note_edges):
         dest.write(f"\t\t# Notes section\n")
         for note in all_notes:
             title = note["title"]
-            _id = note["id"]
-            url = f"bear://x-callback-url/open-note?id={_id}"
+            uuid = note["uuid"]
+            url = f"bear://x-callback-url/open-note?id={uuid}"
             label = graph_format.label(title)
             dest.write(
-                f'\t\t"{_id}" [label="{label}", {graph_format.note_format}, URL="{url}"];\n'
+                f'\t\t"{uuid}" [label="{label}", {graph_format.note_format}, URL="{url}"];\n'
             )
         dest.write(f"\t\t# Tag edge section\n")
         if graph_format.show_tag_edges:

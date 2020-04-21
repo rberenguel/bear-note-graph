@@ -7,10 +7,13 @@ from colorlog import ColoredFormatter  # type: ignore
 
 from bear_note_graph.generate import generate_graph
 from bear_note_graph.graph import GraphFormat
-from bear_note_graph.settings import (DEFAULT_CONFIGURATION, PALETTES,
-                                      dump_default_config,
-                                      dump_default_palette,
-                                      merge_user_config_with_default)
+from bear_note_graph.settings import (
+    DEFAULT_CONFIGURATION,
+    PALETTES,
+    dump_default_config,
+    dump_default_palette,
+    merge_user_config_with_default,
+)
 
 logger = logging.getLogger("bear_note_graph")
 
