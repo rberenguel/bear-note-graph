@@ -118,7 +118,7 @@ I didn't want to invest any more time on it"""
             )
             continue
 
-        if len(md_text) < 3:
+        if md_text is None or len(md_text) < 3:
             logger.warning("Skipping empty note: %s", bear_note_link(uuid))
             continue
         try:

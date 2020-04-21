@@ -53,6 +53,27 @@ def test_note_with_no_text(caplog):
         "md_text": "some text and a #tag",
         "uuid": "42",
     }
+    no_text_note = {"title": "no text title", "uuid": "43"}
+
+    none_text_note = {"title": "none note title", "uuid": "44", "md_text": None}
+
+    rows = [valid_note, no_text_note, none_text_note]
+    gf = GraphFormat(DEFAULT_CONFIGURATION, PALETTES)
+    all_tags, all_notes, all_tag_edges, all_note_edges = generate_graph_from_rows(
+        gf, rows
+    )
+    assert len(all_notes) == 3
+    assert {"title": "no text title", "uuid": "43"} in all_notes
+    assert {"title": "none note title", "uuid": "44"} in all_notes
+
+
+def test_locked_note():
+    """Test for issue #4: https://github.com/rberenguel/bear-note-graph/issues/4"""
+    valid_note = {
+        "title": "note title",
+        "md_text": "some text and a #tag",
+        "uuid": "42",
+    }
     locked_note = {"title": "locked note title", "uuid": "43", "encrypted": "1"}
 
     rows = [valid_note, locked_note]
