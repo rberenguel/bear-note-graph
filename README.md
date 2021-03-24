@@ -2,7 +2,13 @@
 
 [![PyPI version](https://badge.fury.io/py/bear-note-graph.svg)](https://badge.fury.io/py/bear-note-graph)
 
-_Note_: Still WIP, not as thoroughly tested as I would have liked
+## ARCHIVED ON 20210324
+
+I have moved all my notes to standalone Markdown files, handled via [Obsidian](http://obsidian.md). Since Obsidian has built-in connectivity graph and I won't be using Bear anymore, I am archiving this repository. Please feel free to fork and improve on it if you found it useful.
+
+---
+
+~_Note_: Still WIP, not as thoroughly tested as I would have liked~
 
 This is a simple CLI to generate a [Graphviz](https://www.graphviz.org/doc/info/attrs.html)-powered graph of your notes in [Bear](https://bear.app/).
 
